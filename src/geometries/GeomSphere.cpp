@@ -40,6 +40,28 @@ std::vector<Intersection> GeomSphere::intersect(Ray &ray) {
     /**
      * TODO: Update `intersections`
      */
+    GeomSphere* sphere = this;
+    vec3 center = sphere->center;
+    float R = sphere->radius;
+    float a = glm::dot(ray.dir,ray.dir);
+    float b = 2.0f*glm::dot(ray.dir, ray.p0 - center);
+    float c = glm::dot(ray.p0 - center, ray.p0 - center) - R*R;
+
+    float discriminant = b*b - 4*a*c;
+    if (discriminant >= 0) {
+        float t1 = (-b + sqrt(discriminant))/(2*a);
+        float t2 = (-b - sqrt(discriminant))/(2*a);
+        if (t1 > 0) {
+            vec3 point = ray.p0 + t1*ray.dir;
+            vec3 normal = normalize(point - center);
+            intersections.push_back({t1, point, normal, this, nullptr});
+        }
+        if (t2 > 0) {
+            vec3 point = ray.p0 + t2*ray.dir;
+            vec3 normal = normalize(point - center);
+            intersections.push_back({t2, point, normal, this, nullptr});
+        }
+    }
 
     return intersections;
 };
