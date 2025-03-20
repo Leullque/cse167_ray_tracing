@@ -51,7 +51,7 @@ vec3 Square::get_surface_point() {
     /**
      * TODO: use tangent and bitangent to sample a uniformly random point on square
      */
-    vec3 samplePoint = center;
+    vec3 samplePoint = center + u * side_len *tangent + v * side_len *bitangent;
 
     // transform to world space
     return vec3(transformation_matrix * vec4(samplePoint, 1.0f));
