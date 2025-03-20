@@ -53,6 +53,31 @@ std::vector<Intersection> GeomTriangle::intersect(Ray &ray) {
     /**
      * TODO: Update `intersections`
      */
+    // Möller–Trumbore intersection algorithm
+    //solve Ax = b| x:[t,u,v]
+    const float epsilon = 1e-6f;
+    mat3 A(
+        -ray.dir,
+        this->vertices[1] - this->vertices[0],
+        this->vertices[2] - this->vertices[0]
+    );
 
+    vec3 b = ray.p0 - this->vertices[0];
+
+    float detA = determinant(A);
+    vec3 x;
+    if(abs(detA) < epsilon) return intersections; // parallel to the plane
+    
+    for(int i = 0; i < 3; ++i){
+        mat3 matrix = A;
+        matrix[i] = b;
+        x[i] = determinant(matrix) / detA;
+        matrix[i] = A[i];
+    }
+    if(x[0] < 0|| x[1] < 0 || x[2] < 0 || x[1] + x[2] > 1) return intersections; // outside the triangle
+    vec3 point = this->vertices[0] + x[1] * A[1] + x[2] * A[2];
+    vec3 normal = normalize(cross(point-this->vertices[0], point-this->vertices[1]));
+    intersections.push_back({x[0], point, normal, this, nullptr});
+    
     return intersections;
 }
