@@ -116,11 +116,13 @@ glm::vec3 GlossyMaterial::get_direct_lighting(Intersection &intersection, Scene 
          * - Use `light_pos` and `intersection.point` to get direction for shadow ray
          * - Surface normal at point of intersection is stored in `intersection.normal`
          */
+        vec3 light_dir = normalize(light_pos - intersection.point);
         Ray shadow_ray;
-        shadow_ray.p0 = vec3(0.0f);   // TODO: Update ray start position here
-        shadow_ray.dir = vec3(0.0f);  // TODO: Update ray direction here
+        shadow_ray.p0 = intersection.point+intersection.normal * 1e-4f;   
+        // add offset to avoid self shadowing!
+        shadow_ray.dir = light_dir;  // TODO: Update ray direction here
 
-        // check if shadow ray intersects any model
+        // check if shadow ray intersects any model(and store in shadow_ray.intersections)
         for (unsigned int idx = 0; idx < scene.models.size(); idx++)
             scene.models[idx]->intersect(shadow_ray);
 
@@ -147,7 +149,7 @@ glm::vec3 GlossyMaterial::get_direct_lighting(Intersection &intersection, Scene 
              * - This `if` condition block takes care of `visibility_of_light` part in the equation
              *   So here you just need to calculate contribution of light like we did in HW3 for diffuse part
              */
-            vec3 direct_light = vec3(0.0f);  // TODO: Update direct light constribution of light source
+            vec3 direct_light = diffuse*light_emission*max(0.0f,dot(light_dir,intersection.normal));  // TODO: Update direct light constribution of light source
 
             // attenuation factor for light source based on distance
             float attenuation_factor = scene.light_sources[idx]->material->get_light_attenuation_factor(closest_intersection.t);

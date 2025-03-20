@@ -81,8 +81,8 @@ Ray RayTracer::ray_thru_pixel(int i, int j) {
     vec3 u(camera.cameraMatrix[0]);
     vec3 v(camera.cameraMatrix[1]);
     vec3 w(camera.cameraMatrix[2]);
-
-    ray.dir = float(alpha * camera.aspect* tan(radians(camera.fovy*0.5f))) * u;
+    ray.dir = float(alpha * camera.aspect* tan(radians(camera.fovy*0.5f))) * u; 
+    // doesn't transfer to radians to match the pattern of demo?
     ray.dir += float(beta * tan(radians(camera.fovy*0.5f))) * v - w;  // TODO: Implement this
     ray.dir = normalize(ray.dir);
     return ray;
