@@ -74,9 +74,9 @@ std::vector<Intersection> GeomTriangle::intersect(Ray &ray) {
         x[i] = determinant(matrix) / detA;
         matrix[i] = A[i];
     }
-    if(x[0] < 0|| x[1] < 0 || x[2] < 0 || x[1] + x[2] > 1) return intersections; // outside the triangle
-    vec3 point = this->vertices[0] + x[1] * A[1] + x[2] * A[2];
-    vec3 normal = normalize(cross(point-this->vertices[0], point-this->vertices[1]));
+    if(x[0] < 0.0f || x[1] < 0.0f || x[2] < 0.0f || x[1] + x[2] > 1.0f) return intersections; // outside the triangle
+    vec3 point = ray.p0 + x[0] * ray.dir;
+    vec3 normal = normalize(cross(this->vertices[1] - point, this->vertices[2] - point));
     intersections.push_back({x[0], point, normal, this, nullptr});
     
     return intersections;
