@@ -6,7 +6,10 @@
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
 
+#include "Global.h"
+
 using namespace glm;
+// float lambda = 0.9f;
 
 Ray GlossyMaterial::sample_ray_and_update_radiance(Ray &ray, Intersection &intersection) {
     /**
@@ -27,14 +30,19 @@ Ray GlossyMaterial::sample_ray_and_update_radiance(Ray &ray, Intersection &inter
          * Implement cosine-weighted hemisphere sampling
          */
         // cosin sample next ray
-        float s = linearRand(0.0f, 1.0f);
-        float t = linearRand(0.0f, 1.0f);
+        float s = ((float)rand())/RAND_MAX;
+        float t = ((float)rand())/RAND_MAX;
 
         // TODO: Update u, v based on Equation (8) in handout
-        float u = 0.0f;
-        float v = 0.0f;
+        
+        float u = 2.0f * M_PI * s;
+        float v = sqrt(1.0f - t);
 
-        vec3 hemisphere_sample = vec3(0.0f);  // TODO: Update value to cosine-weighted sampled direction
+        vec3 hemisphere_sample = vec3(
+            cos(u) * v,
+            sqrt(t),
+            sin(u) * v
+        );  // TODO: Update value to cosine-weighted sampled direction
 
         // The direction we sampled above is in local co-ordinate frame
         // we need to align it with the surface normal
@@ -46,13 +54,18 @@ Ray GlossyMaterial::sample_ray_and_update_radiance(Ray &ray, Intersection &inter
          * Note:
          * - C_diffuse = `this->diffuse`
          */
-        vec3 W_diffuse = vec3(0.0f);  // TODO: Calculate the radiance for current bounce
-
+        new_dir = normalize(new_dir);
+        normal = normalize(normal);
+        vec3 W_diffuse = this->diffuse*max(0.0f, dot(normal,new_dir));  // TODO: Calculate the radiance for current bounce
+        W_diffuse = glm::clamp(W_diffuse, vec3(0.0f), vec3(1.0f));
+        // if(rayTracer.max_bounces == -1)
+        //     W_diffuse/=(1.0f-lambda); 
         // update radiance
-        ray.W_wip = ray.W_wip * W_diffuse;
+        ray.W_wip = ray.W_wip * W_diffuse;///(1.0f-lambda);
+
 
         // update ray direction and position
-        ray.p0 = point + 0.001f * normal;  // offset point slightly to avoid self intersection
+        ray.p0 = point + 1e-4f * normal;  // offset point slightly to avoid self intersection
         ray.dir = new_dir;
         ray.is_diffuse_bounce = true;
         ray.n_bounces++;
@@ -67,7 +80,8 @@ Ray GlossyMaterial::sample_ray_and_update_radiance(Ray &ray, Intersection &inter
      * TODO: Task 6.2
      * Calculate the perfect mirror reflection direction
      */
-    vec3 reflection_dir = vec3(0.0f);  // TODO: Update with reflection direction
+    vec3 v_income = normalize(ray.p0-intersection.point);
+    vec3 reflection_dir = 2.0f*dot(normal, v_income)*normal-v_income;  // TODO: Update with reflection direction
 
     // Step 2: Calculate radiance
     /**
@@ -75,11 +89,19 @@ Ray GlossyMaterial::sample_ray_and_update_radiance(Ray &ray, Intersection &inter
      * Note:
      * - C_specular = `this->specular`
      */
-    vec3 W_specular = vec3(0.0f);  // TODO: Calculate the radiance for current bounce
+    vec3 h_j = normalize(ray.p0+v_income);
+    vec3 W_specular = this->specular * pow(max(dot(normal, h_j), 0.001f), this->shininess);  // Calculate the radiance for current bounce
+    W_specular = glm::clamp(W_specular, vec3(0.0f), vec3(1.0f));
+    // Limit the radiance to a reasonable color range
+
+    // if(rayTracer.max_bounces == -1)
+    //     W_specular/=(1.0f-lambda); 
+    if(ray.n_bounces == 1)
+        ray.debug_color = W_specular;  // increase intensity for first bounce
 
     // update radiance
     ray.W_wip = ray.W_wip * W_specular;
-    ray.p0 = point + 0.001f * normal;  // offset point slightly to avoid self intersection
+    ray.p0 = point + 1e-4f * normal;  // offset point slightly to avoid self intersection
     ray.dir = reflection_dir;
     ray.is_diffuse_bounce = false;
     ray.n_bounces++;
@@ -169,6 +191,8 @@ vec3 GlossyMaterial::color_of_last_bounce(Ray &ray, Intersection &intersection, 
      */
 
     vec3 direct_diff_light = this->get_direct_lighting(intersection, scene);
-
-    return ray.W_wip * diffuse * (1 - shininess) * direct_diff_light;
+    vec3 color = ray.W_wip * diffuse * (1 - shininess) * direct_diff_light;///(1-lambda);
+    if(ray.n_bounces == 1) color/= ray.lambda;
+    if(rayTracer.max_bounces == -1) color/= (1-ray.lambda);
+    return color;
 }

@@ -53,4 +53,7 @@ class RayTracer {
 
     void refresh_display(std::mutex &imageMutex);
 };
+
+extern RayTracer rayTracer;
+
 #endif

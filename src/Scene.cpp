@@ -6,6 +6,11 @@
 #include "ModelBase.h"
 #include "Ray.h"
 #include "Scene.h"
+#include "RayTracer.h"
+#include "Global.h"
+
+
+// static const float lambda = 0.9f;
 
 Scene::Scene(std::unique_ptr<Node> root_node) {
     /**
@@ -85,9 +90,19 @@ Ray Scene::intersect(Ray &ray) const {
         // if normal shading is on
         if (this->shading_mode == ShadingMode::NORMAL) {
             // just return normal as color
-            ray.color = RGB_to_Linear(0.4f * intersection.normal + 0.6f);
+            ray.color = 0.4f * intersection.normal + 0.6f;
+            ray.color = RGB_to_Linear(ray.color);
             ray.isWip = false;
             return ray;
+        }
+        if(rayTracer.max_bounces == -1){
+            // get a random number between 0 and 1
+            float trail = ((float) rand()) / RAND_MAX;
+            if(trail > ray.lambda){
+                // Russian Roulette failed, terminate the ray
+                ray.isWip = false;
+                return ray;
+            }
         }
 
         if (intersection.model->is_light_source()) {

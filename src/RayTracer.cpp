@@ -67,8 +67,8 @@ Ray RayTracer::ray_thru_pixel(int i, int j) {
      * TODO: Task 1.2
      * Randomly sample x and y inside pixel(i, j)
      */
-    float x = ((double)rand())/RAND_MAX; //0.5f by default
-    float y = ((double)rand())/RAND_MAX; //0.5f by default
+    float x = ((float)rand())/RAND_MAX; //0.5f by default
+    float y = ((float)rand())/RAND_MAX; //0.5f by default
 
     /**
      * TODO: Task 1.1
@@ -81,10 +81,9 @@ Ray RayTracer::ray_thru_pixel(int i, int j) {
     vec3 u(camera.cameraMatrix[0]);
     vec3 v(camera.cameraMatrix[1]);
     vec3 w(camera.cameraMatrix[2]);
-    ray.dir = float(alpha * camera.aspect* tan(radians(camera.fovy*0.5f))) * u; 
-    // doesn't transfer to radians to match the pattern of demo?
-    ray.dir += float(beta * tan(radians(camera.fovy*0.5f))) * v - w;  // TODO: Implement this
-    ray.dir = normalize(ray.dir);
+    float scale = tan(radians(camera.fovy*0.5f));
+    ray.dir = alpha * camera.aspect* scale * u + beta * scale * v - w;  // TODO: Implement this
+    ray.dir = glm::normalize(ray.dir);
     return ray;
 }
 
@@ -147,7 +146,7 @@ void RayTracer::trace_ray_thread_callback(
 
         queue_lock.lock();
         // If the ray should bounce, re-enqueue it without modifying active_rays.
-        if (ray.n_bounces < active_max_bounces && ray.isWip) {
+        if ((active_max_bounces == -1 || ray.n_bounces < active_max_bounces) && ray.isWip) {
             wip_queue.push(ray);
             cond_var.notify_one();
         } else {
@@ -202,7 +201,7 @@ void RayTracer::draw() {
          * TODO: After Completing Task 3
          * set `active_samples_per_pixel = 1`
          */
-        active_samples_per_pixel = samples_per_pixel;  // TODO: Hardcode this value to 1 once Task 3 is complete
+        active_samples_per_pixel = 1;//samples_per_pixel;  // TODO: Hardcode this value to 1 once Task 3 is complete
         active_max_bounces = 1;
     } else {
         active_samples_per_pixel = samples_per_pixel;

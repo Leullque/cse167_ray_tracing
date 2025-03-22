@@ -19,6 +19,7 @@ struct Ray {
                                                  // for diffuse ray bounces
     glm::vec3 debug_color = glm::vec3(0.0f);     // Use this to debug
 
+    float lambda = 0.4f;  // Russian Roulette termination probability
     // Geometry parameters
     glm::vec3 p0;   // basepoint of the ray
     glm::vec3 dir;  // unit direction vector

@@ -29,7 +29,7 @@ static const int height = 600;
 static const char *title = "Ray Tracer";
 static const glm::vec4 background(0.1f, 0.2f, 0.3f, 1.0f);
 static Image image(width, height);
-static RayTracer rayTracer(width, height, image);
+RayTracer rayTracer(width, height, image);
 static bool cooldown_active = false;                   // to avoid unecessary display calls
 std::chrono::steady_clock::time_point last_key_press;  // To track the last key press time
 
